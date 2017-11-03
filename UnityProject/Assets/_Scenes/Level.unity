@@ -2235,7 +2235,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 2026292981}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1993406470 stripped
 Transform:
@@ -2354,7 +2354,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2026292980}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c11081755d568694fa6268c3188e16b7, type: 3}
+  m_Script: {fileID: 11500000, guid: b3c04d88a78ca8a41a03f79af8fdc57e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   WonkyBullet: {fileID: 1692421369768032, guid: 797e80af9dca98a4b9459735f01b65b7,
