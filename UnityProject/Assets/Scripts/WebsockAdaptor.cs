@@ -96,10 +96,13 @@ public class WebsockAdaptor : MonoBehaviour {
 			GameUtilities.Broadcast ("DestroyThisEnemy", ReconstructEnemyIDMsg (payload));
 			break;
 		case SetIsFinishActiveID:
-			GameUtilities.Broadcast ("SetIsFinishActive", ReconstructSetIsFinishActiveMsg(payload));
+			GameUtilities.Broadcast ("SetIsFinishActive", ReconstructSetIsFinishActiveMsg (payload));
 			break;
 		case UpdateCollectableTextID:
 			GameUtilities.Broadcast ("UpdateCollectableText", ReconstructUpdateCollectableTextMsg (payload));
+			break;
+		case SyncTankPositionID:
+			GameUtilities.Broadcast ("SyncTankPosition", ReconstructSyncTankPositionMsg (payload));
 			break;
 		default:
 			// No-op?
@@ -363,6 +366,47 @@ public class WebsockAdaptor : MonoBehaviour {
 		UpdateCollectableTextMsg msg = new UpdateCollectableTextMsg();
 		msg.External = true;
 		msg.collectablesLeft = int.Parse( parts[0] );
+
+		return msg;
+	}
+
+	private const int SyncTankPositionID = UpdateCollectableTextID + 1;
+	void SyncTankPosition(SyncTankPositionMsg msg)
+	{
+		if (msg.External) {
+			return;
+		}
+		WebsockAdaptorSend(
+			SyncTankPositionID
+			+ "," + msg.FrameNo
+			+ "," + msg.TankID
+			+ "," + msg.xPos
+			+ "," + msg.yPos
+			+ "," + msg.zPos
+			+ "," + msg.xQuat
+			+ "," + msg.yQuat
+			+ "," + msg.zQuat
+			+ "," + msg.wQuat
+		);
+	}
+
+	static SyncTankPositionMsg ReconstructSyncTankPositionMsg(string message)
+	{
+		string[] parts = message.Split (new char[]{','});
+		SyncTankPositionMsg msg = new SyncTankPositionMsg ();
+		int part = 0;
+		msg.External = true;
+		msg.FrameNo = int.Parse(parts[part++]);
+		msg.TankID = byte.Parse(parts[part++]);
+
+		msg.xPos = float.Parse(parts[part++]);
+		msg.yPos = float.Parse(parts[part++]);
+		msg.zPos = float.Parse(parts[part++]);
+
+		msg.xQuat = float.Parse(parts[part++]);
+		msg.yQuat = float.Parse(parts[part++]);
+		msg.zQuat = float.Parse(parts[part++]);
+		msg.wQuat = float.Parse(parts[part++]);
 
 		return msg;
 	}

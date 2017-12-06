@@ -145,7 +145,7 @@ namespace TankMessages
 
 	class SyncTankPositionMsg : BaseMsg
 	{
-		public int NetID;
+		public int FrameNo;
 		public int TankID;
 
 		public float xPos;
@@ -156,6 +156,22 @@ namespace TankMessages
 		public float yQuat;
 		public float zQuat;
 		public float wQuat;
+
+		public SyncTankPositionMsg() {}
+
+		public SyncTankPositionMsg(int frame, byte tid, Vector3 ip, Quaternion rot) {
+			FrameNo = frame;
+			TankID = tid;
+
+			xPos = ip.x;
+			yPos = ip.y;
+			zPos = ip.z;
+
+			xQuat = rot.x;
+			yQuat = rot.y;
+			zQuat = rot.z;
+			wQuat = rot.w;
+		}
 	}
 }//TankMessages
 

@@ -12,6 +12,7 @@ using System;
 
 
 public class TankBody : MonoBehaviour {
+	private const int SYNC_FREQUENCY = 100;
 
     // private Rigidbody rigBod;
 
@@ -29,6 +30,8 @@ public class TankBody : MonoBehaviour {
 
     GameObject OwningGame;
     int CurrentFrame; //Q : figure out how to fix framerates. Better way to track frames?
+	int NextMoveUpdateFrame = -1;
+	int LastMoveUpdateFrame = -1;
     public byte TankID;
 
     private float Stamina;
@@ -93,7 +96,7 @@ public class TankBody : MonoBehaviour {
 
 	void SyncTankPosition(SyncTankPositionMsg msg)
 	{	//uses quaternion and position info to set tank transform
-		if (msg.TankID == TankID) {
+		if (msg.External && msg.TankID == TankID) {
 			Vector3 NewPos;
 			Quaternion NewRot = new Quaternion (msg.xQuat,msg.yQuat,msg.zQuat,msg.wQuat);
 
@@ -145,11 +148,13 @@ public class TankBody : MonoBehaviour {
         {   //forward
             TankComponentMovementMsg msg = new TankComponentMovementMsg(TankID, CurrentFrame, true);
             GameUtilities.Broadcast ("MoveTank", msg);
+			MarkSyncNeeded ();
         }
         if(Input.GetKey(Backward))
         {   //backward
             TankComponentMovementMsg msg = new TankComponentMovementMsg(TankID, CurrentFrame, false);
-            GameUtilities.Broadcast ("MoveTank", msg);
+			GameUtilities.Broadcast ("MoveTank", msg);
+			MarkSyncNeeded ();
         }
     }
 
@@ -158,12 +163,14 @@ public class TankBody : MonoBehaviour {
         if (Input.GetKey(Left))
         {
             TankComponentMovementMsg msg = new TankComponentMovementMsg(TankID, CurrentFrame, false);
-            GameUtilities.Broadcast ("TurnTank", msg);
+			GameUtilities.Broadcast ("TurnTank", msg);
+			MarkSyncNeeded ();
         }
         if (Input.GetKey(Right))
         {
             TankComponentMovementMsg msg = new TankComponentMovementMsg(TankID, CurrentFrame, true);
-            GameUtilities.Broadcast ("TurnTank", msg);
+			GameUtilities.Broadcast ("TurnTank", msg);
+			MarkSyncNeeded ();
         }
     }
 
@@ -172,12 +179,14 @@ public class TankBody : MonoBehaviour {
         if (Input.GetKey(StrafeLeft))
         {
             TankComponentMovementMsg msg = new TankComponentMovementMsg(TankID, CurrentFrame, true);
-            GameUtilities.Broadcast ("StrafeTank", msg);
+			GameUtilities.Broadcast ("StrafeTank", msg);
+			MarkSyncNeeded ();
         }
         if (Input.GetKey(StrafeRight))
         {
             TankComponentMovementMsg msg = new TankComponentMovementMsg(TankID, CurrentFrame, false);
-            GameUtilities.Broadcast ("StrafeTank", msg);
+			GameUtilities.Broadcast ("StrafeTank", msg);
+			MarkSyncNeeded ();
         }
     }
 
@@ -226,7 +235,24 @@ public class TankBody : MonoBehaviour {
         //madbrew : what about order on recieving end?
         MoveTank();
         HealStamina();
+		if (CurrentFrame == NextMoveUpdateFrame) {
+			NextMoveUpdateFrame = LastMoveUpdateFrame;
+			SyncTankPositionMsg msg = new SyncTankPositionMsg (
+				CurrentFrame,
+				TankID,
+				transform.position,
+				transform.rotation
+			);
+			GameUtilities.Broadcast ("SyncTankPosition", msg);
+		}
     }
+
+	void MarkSyncNeeded() {
+		LastMoveUpdateFrame = CurrentFrame + SYNC_FREQUENCY;
+		if (NextMoveUpdateFrame < CurrentFrame) {
+			NextMoveUpdateFrame = LastMoveUpdateFrame;
+		}
+	}
 
     void Update()
     {
@@ -291,7 +317,6 @@ public class TankBody : MonoBehaviour {
     {
         isFinishActiveText.gameObject.SetActive(false);
     }
-
 
     void DisableMovement(string emptyMessage) //is there a better way to do this?
     {
